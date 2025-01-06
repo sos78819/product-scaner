@@ -1,0 +1,59 @@
+.qrcode-container {
+    width: 300px;
+   min-height: 300px;
+}
+
+
+.product-info {
+    width: 300px;
+    min-height: 25px;
+    background-color: rgb(209, 209, 195);
+    text-align: center;
+    font-weight: 900;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.btn-container {
+    width: 300px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+}
+
+
+.w-full{
+    width: 100%;
+}
+.qrcode-info-container{
+    border: solid 1px rgb(177, 164, 164);
+    border-radius: 5px;
+    padding: 5px;
+    margin-bottom: 3px;
+}
+.qrcode-info-input-container{
+    border: solid 1px rgb(177, 164, 164);
+    border-radius: 5px;
+    padding: 2px;
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+   margin-top: 2px;
+}
+.qrcode-info-input{
+    border: none;
+    font-size: medium;
+}
+.product-group-container{
+    width: 300px;
+    border-bottom: solid 3px black;
+}
+.upload-message-container{
+    width: 300px;
+    background-color: rgb(196, 196, 183);
+    border-radius: 5px;    
+    margin-bottom: 5px;
+    text-align: center;
+}
+
