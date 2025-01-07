@@ -1,6 +1,6 @@
 .home_container {
-    height: 100vh;
-    justify-content: center;
+    height: 60vh;
+   justify-content: center;
     align-items: center;
     flex-direction: column;
     display: flex;
