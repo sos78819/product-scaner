@@ -1,0 +1,31 @@
+.login-form{
+    min-width: 300px;
+    border: solid 1px rgb(164, 141, 141);
+    padding: 20px;
+    border-radius: 5px;
+}
+.input-group {
+    flex-direction: column;
+    padding: 4px;
+    margin-bottom: 5px;
+}
+
+.input-group label {
+    display: block;
+    font-weight: 900;
+    font-size: medium;
+    padding: 1px;
+}
+
+.input-group input {
+  border:solid 1px rgb(164, 141, 141);
+  font-size:large;
+  border-radius: 5px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  width: 100%;
+}
+.btn-login{   
+    font-size: larger;
+    width: 100%;
+}

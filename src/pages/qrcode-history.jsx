@@ -3,13 +3,13 @@ import { useForm } from "react-hook-form";
 import Button from "../component/button";
 import { Link } from "react-router-dom";
 import DatePickerOpenTo from "../component/date-picker-open-to";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import '../css/_qrcode-history.css'
 
 const QrcodeHistory = () => {
     const [data, setData] = useState("")
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const {
@@ -25,12 +25,18 @@ const QrcodeHistory = () => {
     const onSubmit = (data) => {
         const formattedDate = data.date ? data.date.format("YYYY-MM-DD") : null;
         console.log("Form data:", formattedDate);
-        alert("Form submitted!");
+        setError(null)
+        setData("")
+        fetchData();
+
     };
 
+
+
     const fetchData = async () => {
+        setLoading(true);
         try {
-            const response = await axios.get("http://localhost:3002/qrcodeHistory");
+            const response = await axios.get("http://localhost:3001/qrcode");
             const data = response.data
             console.log(data)
             setData(data)
@@ -41,10 +47,6 @@ const QrcodeHistory = () => {
             setLoading(false);
         }
     }
-
-    useEffect(() => {
-        fetchData();
-    }, [])
 
 
     return (
@@ -57,10 +59,11 @@ const QrcodeHistory = () => {
                     <Button className="black qrcode-history-btn " type="submit">查詢</Button>
                 </form>
             </div>
+            <p><strong>總筆數：{data.length}</strong></p>
             <div>
-
-                {/* {data.map((item, idx) => <p key={item.code}>{item.date}{item.code}{item.product}</p>)} */}
-
+                {loading && <p>Loading...</p>}
+                {error &&<p>Error: {error}</p>}
+            {data && data.map((item) => <p key={item.QRCODEID}>{item.date}{item.QRCODEID}{item.PRODUCT_NAME}</p>)}
             </div>
             <Link to="/"><Button className="black qrcode-history-btn">返回上一步</Button></Link>
         </div>
