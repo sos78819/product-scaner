@@ -1,9 +1,14 @@
 import { createSlice } from '@reduxjs/toolkit';
-
-const initialState = {
+const user = localStorage.getItem('user')
+const token = localStorage.getItem('token')
+const initialState = user && token ?
+{
+  isLogin: true, // 用戶是否已登錄
+  user: user, // 登錄的用戶信息
+}:{
   isLogin: false, // 用戶是否已登錄
   user: null, // 登錄的用戶信息
-};
+}
 
 const authSlice = createSlice({
   name: 'auth',
@@ -16,6 +21,8 @@ const authSlice = createSlice({
     logout: (state) => {
       state.isLogin = false;
       state.user = null; // 清除用戶資料
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
     },
   },
 });

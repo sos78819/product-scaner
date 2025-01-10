@@ -4,6 +4,8 @@ import { useState, useRef } from "react"
 import Button from "../component/button"
 import { Link } from "react-router-dom"
 import InputQrcodeInfo from "../component/input-qrcode-info"
+import axios from "axios"
+import dayjs from "dayjs"
 import '../css/_qrcode-scaner.css'
 
 const QrcodeScaner = () => {
@@ -19,13 +21,14 @@ const QrcodeScaner = () => {
     const switchInput = () => {
         setIsInput((pre) => !pre)
     }
-    function handleInput() {
+    const InputHandler = () => {
         const InptQrcode = inputRef.current.value;
         console.log(InptQrcode)
         setProductInfo(InptQrcode)
         setScanSucess(false)
         setInputSucess(true)
     }
+
 
     const scanHandler = (result) => {
         if (result) {
@@ -41,13 +44,14 @@ const QrcodeScaner = () => {
                 paramList.push({ key, value });
             }
             console.log(paramList)
-            const product = paramList.filter((param) => param.key === "product")
+            const PRODUCT_NAME = paramList.filter((param) => param.key === "PRODUCT_NAME")
             setParams(paramList)
             setTimeout(() => setIsScan(false), 1000)
-            if (product.length !== 0) {
-                setProductInfo(product[0].value)
-                setScanSucess(true)
-                setInputSucess(false)
+            if (PRODUCT_NAME.length !== 0) {
+
+                //呼叫api
+                saveQrcodeInfo(paramList)
+
             } else {
                 setProductInfo("查無該產品")
                 setScanSucess(false)
@@ -55,6 +59,47 @@ const QrcodeScaner = () => {
             }
         }
 
+    }
+    const saveQrcodeInfo = async (paramList) => {
+        console.log(paramList)
+        const user = localStorage.getItem('user')
+        const newQrcodeInfo = paramList.reduce((acc, curr) => {
+            acc[curr.key] = curr.value;
+            return acc;
+        }, {
+            SCCSID: "",
+            UID: "",
+            POINTS: "",
+            CONTENTS: "",
+            SCAN_YMDTIME: dayjs().format('YYYY-MM-DD'),
+            SCAN_USRID: user,
+            UPDATE_YMDTIME: "",
+            UPDATE_USRID: ""
+        });
+        try {
+            const response = await axios.post(
+                'http://localhost:3000/uploadqrcode',
+                newQrcodeInfo
+            )
+            setScanSucess(true)
+            setProductInfo(newQrcodeInfo.PRODUCT_NAME)
+            setInputSucess(false)
+        } catch (error) {
+            setProductInfo(error.response.data.message)
+            alert(error.response.data.message)
+            setScanSucess(false)
+            setInputSucess(false)
+        }
+        //要寫入的資料
+        // SCCSID ?
+        // UID ?
+        // QRCODEID
+        // PRODUCT_NAME
+        // PRODUCT_CODE
+        // POINTS ?
+        // CONTENTS ?
+        // SCAN_YMDTIME
+        // SCAN_USRID
     }
 
 
@@ -65,7 +110,7 @@ const QrcodeScaner = () => {
             {IsInput &&
                 <InputQrcodeInfo
                     inputRef={inputRef}
-                    onClick={handleInput}
+                    onClick={InputHandler}
                 />}
             <Scanner
                 onScan={scanHandler}
@@ -80,8 +125,8 @@ const QrcodeScaner = () => {
         </div>
         <div className="product-info">
             {productInfo}
-            {sacnSucess ? <p>掃描完成</p>:InputSucess && <p>輸入完成</p>}
-           
+            {sacnSucess ? <p>掃描完成</p> : InputSucess && <p>輸入完成</p>}
+
         </div>
         <div className="btn-container">
             <Link to='/'><Button className="black w-full">回首頁</Button></Link>

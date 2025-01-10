@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import PageTitle from "../component/page_tile";
+import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import Button from "../component/button";
+
 
 const QrcodeScanList = () => {
     const [data, setData] = useState("");
@@ -13,11 +15,16 @@ const QrcodeScanList = () => {
     const [IsUpload, setUpload] = useState(null);
 
     const handleUpload = async () => {
+        const formattedDate =dayjs().format('YYYY-MM-DD') 
+        const updateData = data.map(item => ({ ...item, 'UPDATE_YMDTIME': formattedDate }));
+        console.log('updateData',updateData)
         try {
             setUploadprogress(true)
-            const response = await axios.post("http://localhost:3001/uploadqrcode");
+            const response = await axios.put("http://localhost:3000/updateQrcodes",
+                updateData
+            );
             if (response.status === 200) {
-                setUpload("success")
+                setUpload("success")                
                 setUploadprogress(false)
             } else {
                 setUpload("error")
@@ -35,7 +42,7 @@ const QrcodeScanList = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get("http://localhost:3001/qrcode");
+                const response = await axios.get("http://localhost:3000/getUploadQrcode");
                 const data = response.data
                 console.log(data)
                 const productCounts = data.reduce((acc, item) => {
@@ -45,7 +52,8 @@ const QrcodeScanList = () => {
                 setguropData(productCounts)
                 setData(data);
             } catch (err) {
-                setError(err.message);
+                console.log(err.message);
+                setError(err.response.data.message)
             } finally {
                 setLoading(false);
             }
@@ -67,7 +75,7 @@ const QrcodeScanList = () => {
             </div>
             <div className="product-container">
                 {loading && <p>Loading...</p>}
-                {error && <p>Error: {error}</p>}
+                {error && <p>{error}</p>}
                 {data && data.map((item, idx) => <p key={item.code}>{idx + 1}.{item.QRCODEID}{item.PRODUCT_NAME}</p>)}
             </div>
             <div className="upload-message-container">
@@ -77,7 +85,7 @@ const QrcodeScanList = () => {
             </div>
             <div className="btn-container">
                 <Link to='/scaner'><Button className="black w-full">返回上一頁</Button></Link>
-                <Button onClick={handleUpload} className="black w-full">確定上傳</Button>
+                <Button onClick={handleUpload}  disabled={error} className="black w-full">確定上傳</Button>
             </div>
         </div>
     );

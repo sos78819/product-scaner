@@ -27,22 +27,22 @@ const QrcodeHistory = () => {
         console.log("Form data:", formattedDate);
         setError(null)
         setData("")
-        fetchData();
+        fetchData(formattedDate);
 
     };
 
 
 
-    const fetchData = async () => {
+    const fetchData = async (formattedDate) => {
         setLoading(true);
         try {
-            const response = await axios.get("http://localhost:3001/qrcode");
+            const response = await axios.get(`http://localhost:3000/qrcode-by-date?UPDATE_YMDTIME=${formattedDate}`);
             const data = response.data
             console.log(data)
             setData(data)
 
         } catch (err) {
-            setError(err.message);
+            setError(err.response.data.message);
         } finally {
             setLoading(false);
         }
