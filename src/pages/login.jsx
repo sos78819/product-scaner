@@ -43,13 +43,14 @@ const Login = () => {
             const response = await axios.post(
                 'http://localhost:3000/login',
                 {
-                    email: email,
-                    password: Password
+                    SYSTEM_ADMIN_NAME: email,
+                    SYSTEM_ADMIN_PASSWORD: Password
                 }
             );
             console.log(response.data)
             dispatch(login(email));  // 更新 Redux store
-            localStorage.setItem('user', email);
+            localStorage.setItem('SYSTEM_ADMIN_NAME', email);
+            localStorage.setItem('SYSTEM_ADMIN_CODE', response.data.SYSTEM_ADMIN_CODE);
             localStorage.setItem('token', response.data.token);
             console.log('登入成功', response.data);
             navigate('/')

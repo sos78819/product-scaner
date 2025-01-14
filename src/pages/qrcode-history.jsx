@@ -42,7 +42,7 @@ const QrcodeHistory = () => {
             setData(data)
 
         } catch (err) {
-            setError(err.response.data.message);
+            setError(err.response?err.response.data.message:err.message);
         } finally {
             setLoading(false);
         }
@@ -62,8 +62,8 @@ const QrcodeHistory = () => {
             <p><strong>總筆數：{data.length}</strong></p>
             <div>
                 {loading && <p>Loading...</p>}
-                {error &&<p>Error: {error}</p>}
-            {data && data.map((item) => <p key={item.QRCODEID}>{item.date}{item.QRCODEID}{item.PRODUCT_NAME}</p>)}
+                {error &&<p>{error}</p>}
+            {data && data.map((item) => <p key={item.QRCODEID}><span>{item.UPDATE_YMDTIME}</span><span className="codeId"><strong>{item.QRCODEID}</strong></span>{item.PRODUCT_NAME}</p>)}
             </div>
             <Link to="/"><Button className="black qrcode-history-btn">返回上一步</Button></Link>
         </div>

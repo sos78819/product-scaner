@@ -4,6 +4,7 @@ import { useState, useRef } from "react"
 import Button from "../component/button"
 import { Link } from "react-router-dom"
 import InputQrcodeInfo from "../component/input-qrcode-info"
+import ScanLebel from "../component/scan-lebel"
 import axios from "axios"
 import dayjs from "dayjs"
 import '../css/_qrcode-scaner.css'
@@ -62,7 +63,7 @@ const QrcodeScaner = () => {
     }
     const saveQrcodeInfo = async (paramList) => {
         console.log(paramList)
-        const user = localStorage.getItem('user')
+        const SCAN_USRID = localStorage.getItem('SYSTEM_ADMIN_CODE')
         const newQrcodeInfo = paramList.reduce((acc, curr) => {
             acc[curr.key] = curr.value;
             return acc;
@@ -72,7 +73,7 @@ const QrcodeScaner = () => {
             POINTS: "",
             CONTENTS: "",
             SCAN_YMDTIME: dayjs().format('YYYY-MM-DD'),
-            SCAN_USRID: user,
+            SCAN_USRID: SCAN_USRID,
             UPDATE_YMDTIME: "",
             UPDATE_USRID: ""
         });
@@ -85,8 +86,10 @@ const QrcodeScaner = () => {
             setProductInfo(newQrcodeInfo.PRODUCT_NAME)
             setInputSucess(false)
         } catch (error) {
-            setProductInfo(error.response.data.message)
-            alert(error.response.data.message)
+            console.log(error.message)
+
+            setProductInfo(error.response ? error.response.data.message
+                : error.message === 'Network Error' ? '系統連線失敗，請再次掃描！' : error.message)
             setScanSucess(false)
             setInputSucess(false)
         }
@@ -114,12 +117,14 @@ const QrcodeScaner = () => {
                 />}
             <Scanner
                 onScan={scanHandler}
-                allowMultiple={true}
+                scanDelay={1000}
+                allowMultiple={false}
                 styles={
                     {
                         finderBorder: 30
                     }
                 }
+                children={isScan && <ScanLebel/>}
                 onError={(error) => console.error("Scanner error:", error)}
             />
         </div>

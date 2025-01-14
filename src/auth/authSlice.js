@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-const user = localStorage.getItem('user')
+const user = localStorage.getItem('SYSTEM_ADMIN_NAME')
 const token = localStorage.getItem('token')
 const initialState = user && token ?
 {

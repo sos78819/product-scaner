@@ -15,16 +15,21 @@ const QrcodeScanList = () => {
     const [IsUpload, setUpload] = useState(null);
 
     const handleUpload = async () => {
-        const formattedDate =dayjs().format('YYYY-MM-DD') 
-        const updateData = data.map(item => ({ ...item, 'UPDATE_YMDTIME': formattedDate }));
-        console.log('updateData',updateData)
+        const formattedDate = dayjs().format('YYYY-MM-DD')
+        const SYSTEM_ADMIN_CODE = localStorage.getItem('SYSTEM_ADMIN_CODE')
+        const updateData = data.map(item => ({
+            ...item, 
+            'UPDATE_USRID':SYSTEM_ADMIN_CODE,
+            'UPDATE_YMDTIME': formattedDate
+        }));
+        console.log('updateData', updateData)
         try {
             setUploadprogress(true)
             const response = await axios.put("http://localhost:3000/updateQrcodes",
                 updateData
             );
             if (response.status === 200) {
-                setUpload("success")                
+                setUpload("success")
                 setUploadprogress(false)
             } else {
                 setUpload("error")
@@ -32,11 +37,10 @@ const QrcodeScanList = () => {
             }
 
         } catch (error) {
-            console.error("Upload failed:", error);
+            console.error("Upload failed:", error.message);
             setUpload("error")
             setUploadprogress(false)
         }
-
     }
 
     useEffect(() => {
@@ -53,7 +57,7 @@ const QrcodeScanList = () => {
                 setData(data);
             } catch (err) {
                 console.log(err.message);
-                setError(err.response.data.message)
+                setError(err.response?err.response.data.message:err.message)
             } finally {
                 setLoading(false);
             }
@@ -67,7 +71,7 @@ const QrcodeScanList = () => {
     return (
         <div className="page-container">
             <PageTitle>上傳掃描資訊</PageTitle>
-            <h2>總計上傳數量：{data.length}</h2>
+            <h2>{IsUpload === "success"?'總計上傳數量':'總計掃描數量'}：{data.length}</h2>
             <div className="product-group-container">
                 {data && Object.entries(guropData).map(([product, count]) => (
                     <p key={product}><span><strong>{product}</strong>：</span>{count}個</p>
@@ -85,7 +89,7 @@ const QrcodeScanList = () => {
             </div>
             <div className="btn-container">
                 <Link to='/scaner'><Button className="black w-full">返回上一頁</Button></Link>
-                <Button onClick={handleUpload}  disabled={error} className="black w-full">確定上傳</Button>
+                <Button onClick={handleUpload} disabled={error || IsUpload==='success'} className="black w-full">確定上傳</Button>
             </div>
         </div>
     );
