@@ -5,7 +5,7 @@ import Button from "../component/button"
 import { Link } from "react-router-dom"
 import InputQrcodeInfo from "../component/input-qrcode-info"
 import ScanLebel from "../component/scan-lebel"
-import axios from "axios"
+import ApiService from "../service/api"
 import dayjs from "dayjs"
 import '../css/_qrcode-scaner.css'
 
@@ -16,8 +16,9 @@ const QrcodeScaner = () => {
     const [IsInput, setIsInput] = useState(false)
     const [InputSucess, setInputSucess] = useState(false)
     const [sacnSucess, setScanSucess] = useState(false)
-
     const inputRef = useRef(null);
+
+    const api = new ApiService()
 
     const switchInput = () => {
         setIsInput((pre) => !pre)
@@ -45,14 +46,12 @@ const QrcodeScaner = () => {
                 paramList.push({ key, value });
             }
             console.log(paramList)
-            const PRODUCT_NAME = paramList.filter((param) => param.key === "PRODUCT_NAME")
+            const QRCODEID = paramList.filter((param) => param.key === "QRCODEID")
             setParams(paramList)
             setTimeout(() => setIsScan(false), 1000)
-            if (PRODUCT_NAME.length !== 0) {
-
-                //呼叫api
+            if (QRCODEID[0].value) {
+                //呼叫api查詢商品資訊
                 saveQrcodeInfo(paramList)
-
             } else {
                 setProductInfo("查無該產品")
                 setScanSucess(false)
@@ -78,31 +77,20 @@ const QrcodeScaner = () => {
             UPDATE_USRID: ""
         });
         try {
-            const response = await axios.post(
-                'http://localhost:3000/uploadqrcode',
+            const response = await api.post(
+                '/uploadqrcode',
                 newQrcodeInfo
             )
             setScanSucess(true)
             setProductInfo(newQrcodeInfo.PRODUCT_NAME)
             setInputSucess(false)
         } catch (error) {
-            console.log(error.message)
-
-            setProductInfo(error.response ? error.response.data.message
-                : error.message === 'Network Error' ? '系統連線失敗，請再次掃描！' : error.message)
+            console.log(error)    
+               
+            setProductInfo(error.message)
             setScanSucess(false)
             setInputSucess(false)
         }
-        //要寫入的資料
-        // SCCSID ?
-        // UID ?
-        // QRCODEID
-        // PRODUCT_NAME
-        // PRODUCT_CODE
-        // POINTS ?
-        // CONTENTS ?
-        // SCAN_YMDTIME
-        // SCAN_USRID
     }
 
 

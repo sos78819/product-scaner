@@ -4,14 +4,14 @@ import Button from "../component/button";
 import { Link } from "react-router-dom";
 import DatePickerOpenTo from "../component/date-picker-open-to";
 import { useState } from "react";
-import axios from "axios";
+import ApiService from "../service/api";
 import '../css/_qrcode-history.css'
 
 const QrcodeHistory = () => {
     const [data, setData] = useState("")
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-
+    const api = new ApiService()
     const {
         control,
         handleSubmit,
@@ -36,13 +36,14 @@ const QrcodeHistory = () => {
     const fetchData = async (formattedDate) => {
         setLoading(true);
         try {
-            const response = await axios.get(`http://localhost:3000/qrcode-by-date?UPDATE_YMDTIME=${formattedDate}`);
+            const response = await api.get(`/qrcode-by-date?UPDATE_YMDTIME=${formattedDate}`);
             const data = response.data
             console.log(data)
             setData(data)
 
         } catch (err) {
-            setError(err.response?err.response.data.message:err.message);
+            console.log(err)
+            setError(err.message);
         } finally {
             setLoading(false);
         }
