@@ -25,16 +25,6 @@ class ApiService {
       }
     );
 
-    // 
-    this.axiosInstance.interceptors.response.use(
-      (response) => {
-        console.log(response.status)
-        return response;
-      },
-      (error) => {
-        return Promise.reject(this.handleError(error));
-      }
-    );
   }
 
   // 設置 token
@@ -49,8 +39,9 @@ class ApiService {
 
   // 錯誤處理
   handleError(error) {
-    if (error.response) {
-      return {
+    console.log(error)
+    if (error.response) {     
+      return {      
         status: error.response.status,
         message: error.response.data.message || 'An error occurred',
       };
@@ -72,7 +63,7 @@ class ApiService {
     try {
       const response = await this.axiosInstance.post(url, data);
       return response;
-    } catch (error) {
+    } catch (error) {      
       throw this.handleError(error);
     }
   }
