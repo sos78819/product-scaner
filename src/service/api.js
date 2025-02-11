@@ -39,24 +39,26 @@ class ApiService {
 
   // 錯誤處理
   handleError(error) {
-    console.log(error)
-    if (error.response) {     
-      return {      
-        status: error.response.status,
-        message: error.response.data.message || 'An error occurred',
-      };
+    if (error.response) {
+      // 伺服器返回錯誤代碼
+      const { status, data } = error.response;
+      console.error(`Error ${status}:`, data);
+      if (status === 401) {
+        // 處理未授權錯誤，清除 token 等
+        this.removeToken();
+      }
+      return data; // 回傳伺服器錯誤訊息
     } else if (error.request) {
-      return {
-        status: 500,
-        message: 'NetWork Error 系統連線失敗',
-      };
+      // 請求已發送但沒有收到回應
+      console.error('No response received:', error.request);
+      return { message: 'No response from server' };
     } else {
-      return {
-        status: null,
-        message: error.message || 'An unknown error occurred',
-      };
+      // 發生錯誤時的處理
+      console.error('Error:', error.message);
+      return { message: error.message };
     }
   }
+
 
   // POST 请求
   async post(url, data) {

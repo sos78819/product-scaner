@@ -1,36 +1,21 @@
 import PageTitle from "../component/page_tile"
 import { Scanner } from "@yudiel/react-qr-scanner"
-import { useState, useRef } from "react"
+import { useState } from "react"
 import Button from "../component/button"
 import { Link } from "react-router-dom"
-import InputQrcodeInfo from "../component/input-qrcode-info"
 import ScanLebel from "../component/scan-lebel"
 import ApiService from "../service/api"
 import dayjs from "dayjs"
 import '../css/_qrcode-scaner.css'
 
 const QrcodeScaner = () => {
-    const [productInfo, setProductInfo] = useState("掃描QR CODE貼紙")
+    const [productInfo, setProductInfo] = useState(null)
     const [isScan, setIsScan] = useState(false)
+    const [errorMessage, setErrorMessage] = useState(null)
     const [params, setParams] = useState([]);
-    const [IsInput, setIsInput] = useState(false)
-    const [InputSucess, setInputSucess] = useState(false)
-    const [sacnSucess, setScanSucess] = useState(false)
-    const inputRef = useRef(null);
+  
 
     const api = new ApiService()
-
-    const switchInput = () => {
-        setIsInput((pre) => !pre)
-    }
-    const InputHandler = () => {
-        const InptQrcode = inputRef.current.value;
-        console.log(InptQrcode)
-        setProductInfo(InptQrcode)
-        setScanSucess(false)
-        setInputSucess(true)
-    }
-
 
     const scanHandler = (result) => {
         if (result) {
@@ -46,50 +31,54 @@ const QrcodeScaner = () => {
                 paramList.push({ key, value });
             }
             console.log(paramList)
-            const QRCODEID = paramList.filter((param) => param.key === "QRCODEID")
+            const QRCODEID = paramList.filter((param) => param.key === "qrCode")
             setParams(paramList)
             setTimeout(() => setIsScan(false), 1000)
-            if (QRCODEID[0].value) {
+            if (QRCODEID) {
                 //呼叫api查詢商品資訊
-                saveQrcodeInfo(paramList)
+                console.log(QRCODEID)
+                fetchQrcode(QRCODEID[0].value)
             } else {
-                setProductInfo("查無該產品")
-                setScanSucess(false)
-                setInputSucess(false)
+                setErrorMessage("Qrcode不正確，請重新掃描或手動輸入")
             }
         }
 
     }
-    const saveQrcodeInfo = async (paramList) => {
-        console.log(paramList)
-        const SCAN_USRID = localStorage.getItem('SYSTEM_ADMIN_CODE')
-        const newQrcodeInfo = paramList.reduce((acc, curr) => {
-            acc[curr.key] = curr.value;
-            return acc;
-        }, {
-            SCCSID: "",
-            UID: "",
-            POINTS: "",
-            CONTENTS: "",
-            SCAN_YMDTIME: dayjs().format('YYYY-MM-DD'),
-            SCAN_USRID: SCAN_USRID,
-            UPDATE_YMDTIME: "",
-            UPDATE_USRID: ""
-        });
+    const fetchQrcode = async (QrCode) => {
         try {
-            const response = await api.post(
-                '/uploadqrcode',
-                newQrcodeInfo
-            )
-            setScanSucess(true)
-            setProductInfo(newQrcodeInfo.PRODUCT_NAME)
-            setInputSucess(false)
+            const response = await api.get("/getQrcodeList", { "QrCode": QrCode })
+            const productListData = response.data
+            if (productListData.length) {                
+                //如果有該id，儲存scanData
+                saveScanData(productListData[0])  
+            }
         } catch (error) {
-            console.log(error)    
-               
-            setProductInfo(error.message)
-            setScanSucess(false)
-            setInputSucess(false)
+            console.log(error)
+            setErrorMessage(error.message)
+        }
+    }
+
+    const saveScanData = async (product) => {
+        try {
+            const SCAN_USRID = localStorage.getItem('SYSTEM_ADMIN_CODE');
+            await api.post("addScanData", {
+                SCCSID: "",
+                UID: 1,
+                PRODUCT_NAME: product.ProductName,
+                QRCODEID: product.QrCode,
+                PRODUCT_CODE: product.ProductCode,
+                POINTS: "",
+                CONTENTS: "",
+                SCAN_YMDTIME: dayjs().format('YYYY-MM-DD'),
+                SCAN_USRID: SCAN_USRID,
+                UPDATE_YMDTIME: "",
+                UPDATE_USRID: "",
+            });
+            setProductInfo(product)
+            setErrorMessage(null)
+        } catch (error) {
+            console.error("保存掃描數據時出錯:", error);
+            setErrorMessage(error.message)
         }
     }
 
@@ -97,12 +86,7 @@ const QrcodeScaner = () => {
     return <div className="page-container">
         <PageTitle>Qrcode掃描</PageTitle>
         <div className="qrcode-container">
-            <Button onClick={switchInput} className="black switch-input">切換為手動輸入</Button>
-            {IsInput &&
-                <InputQrcodeInfo
-                    inputRef={inputRef}
-                    onClick={InputHandler}
-                />}
+            <Link to='/qrcode-input' className="switch-input"><div><Button className="black">切換為手動輸入</Button></div></Link>
             <Scanner
                 onScan={scanHandler}
                 scanDelay={1000}
@@ -112,13 +96,17 @@ const QrcodeScaner = () => {
                         finderBorder: 30
                     }
                 }
-                children={isScan && <ScanLebel/>}
+                children={isScan && <ScanLebel />}
                 onError={(error) => console.error("Scanner error:", error)}
             />
         </div>
         <div className="product-info">
-            {productInfo}
-            {sacnSucess ? <p>掃描完成</p> : InputSucess && <p>輸入完成</p>}
+            {productInfo ? <>
+                <p>{productInfo.ProductName}{productInfo.ProductCode}</p>
+                <p>掃描完成</p>
+            </>:<p>掃描QR CODE貼紙</p>}
+            {errorMessage && <p>{errorMessage}</p>}
+
 
         </div>
         <div className="btn-container">

@@ -11,7 +11,7 @@ const PageTitle = ({ children }) => {
     return (
         <div className="page-title">
             <h1><strong>{children}</strong></h1>
-            <div className="log-out"><Button onClick={logouthandler} className="black">登出</Button></div>
+            <div className="log-out"><Button onClick={logouthandler} className="black log-out-btn">登出</Button></div>
         </div>
     )
 }

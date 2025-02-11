@@ -1,11 +1,16 @@
-.qrcode-container {
-    width: 300px;
-   min-height: 300px;
+.qrcode-container,
+.qrcode-input-container {
+    width: 338px;
+    min-height: 365px;
 }
 
+.qrcode-container video {
+    width: 338px;
+    min-height: 335px;
+}
 
 .product-info {
-    width: 300px;
+    width: 338px;
     min-height: 25px;
     background-color: rgb(209, 209, 195);
     text-align: center;
@@ -17,43 +22,60 @@
 }
 
 .btn-container {
-    width: 300px;
+    width: 338px;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2px;
 }
 
-
-.w-full{
+.w-full {
     width: 100%;
 }
-.qrcode-info-container{
+
+.qrcode-info-container {
     border: solid 1px rgb(177, 164, 164);
+    height: 168px;
     border-radius: 5px;
-    padding: 5px;
+    padding: 10px;
     margin-bottom: 3px;
 }
-.qrcode-info-input-container{
+
+.qrcode-info-input-container {
     border: solid 1px rgb(177, 164, 164);
     border-radius: 5px;
-    padding: 2px;
+    padding: 8px;
     display: grid;
     grid-template-columns: 3fr 1fr;
-   margin-top: 2px;
+    margin-top: 2px;
 }
-.qrcode-info-input{
+
+.qrcode-info-input {
     border: none;
     font-size: medium;
 }
-.product-group-container{
+
+.product-group-container {
     width: 300px;
     border-bottom: solid 3px black;
 }
-.upload-message-container{
+
+.upload-message-container {
     width: 300px;
     background-color: rgb(196, 196, 183);
-    border-radius: 5px;    
+    border-radius: 5px;
     margin-bottom: 5px;
     text-align: center;
 }
 
+.select_product_item {
+    width: 100%;
+    background-color: rgb(196, 196, 183);
+    cursor: pointer;
+    padding: 5PX;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+.select_product_item:hover {
+    background-color: rgb(171, 171, 161);
+}

@@ -20,6 +20,7 @@
     background-color: rgb(13, 137, 213, 0.8);
 }
 .switch-input{
+    width: fit-content;
     display: block;
     margin: 0 auto;
     margin-bottom: 5px;

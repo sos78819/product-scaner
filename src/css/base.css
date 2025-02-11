@@ -20,6 +20,7 @@ body{
 }
 .page-title{
     width: 100%;
+    margin-top: 10px;
     display: grid;
     flex-direction: row;
     grid-template-columns: 5fr 1fr;
@@ -27,13 +28,19 @@ body{
     margin-bottom: 10px;  
 }
 .page-title h1{
-    padding-left: 8px;
+    margin-left: 18px;
+    width: 219px;
 }
 .log-out{
     display: flex;
     justify-content: center;
     align-items: center;
 }
+.log-out-btn{
+    width: 61px;
+    height: 44px;
+}
+
 input:focus{
     outline: none;
 }

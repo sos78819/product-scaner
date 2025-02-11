@@ -4,6 +4,7 @@ import Home from "./pages/home"
 import Login from "./pages/login"
 import QrcodeScaner from "./pages/qrcode-scaner"
 import QrcodeScanList from "./pages/qrcode-scan-list"
+import QrcodeInput from "./pages/qrcodr-input"
 import './css/base.css'
 import QrcodeHistory from "./pages/qrcode-history"
 
@@ -35,6 +36,10 @@ function App() {
       element: isLogin ? <QrcodeScanList /> : <Navigate to='/login' />,
 
     },
+    {
+      path:'/qrcode-input',
+      element:<QrcodeInput/>
+    }
     ])
   return (
     <RouterProvider router={router} />
