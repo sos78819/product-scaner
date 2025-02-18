@@ -3,39 +3,29 @@ import axios from 'axios';
 
 class ApiService {
   constructor(baseURL) {
-    this.token = null; // token 初始值
     this.axiosInstance = axios.create({
-      baseURL: baseURL || 'http://localhost:3000',  
+      baseURL: baseURL || 'http://localhost:3000',
       headers: {
         'Content-Type': 'application/json',
       },
     });
-
-    
-    this.axiosInstance.interceptors.request.use(
-      (config) => {
-        // 如果有 token，加上Authorization
-        if (this.token) {
-          config.headers['Authorization'] = `Bearer ${this.token}`;
-        }
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
-
   }
+
+  setAuthorizationToken(token) {
+    this.axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
+  }
+
+
 
   // 設置 token
-  setToken(token) {
-    this.token = token; // 保存 token
-  }
+  // setToken(token) {
+  //   this.token = token; // 保存 token
+  // }
 
-  // 移除 token
-  removeToken() {
-    this.token = null; // 清除 token
-  }
+  // // 移除 token
+  // removeToken() {
+  //   this.token = null; // 清除 token
+  // }
 
   // 錯誤處理
   handleError(error) {
@@ -45,7 +35,8 @@ class ApiService {
       console.error(`Error ${status}:`, data);
       if (status === 401) {
         // 處理未授權錯誤，清除 token 等
-        this.removeToken();
+        //this.removeToken();
+        console.log('401')
       }
       return data; // 回傳伺服器錯誤訊息
     } else if (error.request) {
