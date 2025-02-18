@@ -61,18 +61,12 @@ const QrcodeScaner = () => {
     const saveScanData = async (product) => {
         try {
             const SCAN_USRID = localStorage.getItem('SYSTEM_ADMIN_CODE');
-            await api.post("addScanData", {
-                SCCSID: "",
-                UID: 1,
+            await api.post("aAddscan", {          
                 PRODUCT_NAME: product.ProductName,
                 QRCODEID: product.QrCode,
-                PRODUCT_CODE: product.ProductCode,
-                POINTS: "",
-                CONTENTS: "",
-                SCAN_YMDTIME: dayjs().format('YYYY-MM-DD'),
+                PRODUCT_CODE: product.ProductCode,      
                 SCAN_USRID: SCAN_USRID,
-                UPDATE_YMDTIME: "",
-                UPDATE_USRID: "",
+                ORIGINAL_STATUS:product.Status
             });
             setProductInfo(product)
             setErrorMessage(null)

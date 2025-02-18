@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 const user = localStorage.getItem('SYSTEM_ADMIN_NAME')
-const token = localStorage.getItem('token')
+const token = localStorage.getItem('user_token')
 const initialState = user && token ?
 {
   isLogin: true, // 用戶是否已登錄
@@ -21,8 +21,9 @@ const authSlice = createSlice({
     logout: (state) => {
       state.isLogin = false;
       state.user = null; // 清除用戶資料
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      localStorage.removeItem('user_token');
+      localStorage.removeItem('SYSTEM_ADMIN_CODE');
+      localStorage.removeItem('SYSTEM_ADMIN_NAME');
     },
   },
 });

@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
-// import axios from "axios";
 import ApiService from "../service/api";
 import PageTitle from "../component/page_tile";
-import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import Button from "../component/button";
 
@@ -17,17 +15,16 @@ const QrcodeScanList = () => {
     const api = new ApiService()
 
     const handleUpload = async () => {
-        const formattedDate = dayjs().format('YYYY-MM-DD')
+        
         const SYSTEM_ADMIN_CODE = localStorage.getItem('SYSTEM_ADMIN_CODE')
-        const updateData = data.map(item => ({
-            ...item, 
-            'UPDATE_USRID':SYSTEM_ADMIN_CODE,
-            'UPDATE_YMDTIME': formattedDate
-        }));
+        const updateData = {
+            QRCODEIDs: data.map(item => item.qrcodeid),
+            UPDATE_USRID: SYSTEM_ADMIN_CODE  
+        };
         console.log('updateData', updateData)
         try {
             setUploadprogress(true)
-            const response = await api.put("/updateQrcodes",
+            const response = await api.put("/updateScanResume",
                 updateData
             );
             console.log(response)
@@ -40,6 +37,7 @@ const QrcodeScanList = () => {
             }
 
         } catch (error) {
+            console.log(error)
             console.error("Upload failed:", error.message);
             setUpload("error")
             setUploadprogress(false)
@@ -49,11 +47,11 @@ const QrcodeScanList = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await api.get("/getUploadQrcode");
+                const response = await api.get("/scanResume");
                 const data = response.data
                 console.log(data)
                 const productCounts = data.reduce((acc, item) => {
-                    acc[item.PRODUCT_NAME] = (acc[item.PRODUCT_NAME] || 0) + 1;
+                    acc[item.product_name] = (acc[item.product_name] || 0) + 1;
                     return acc;
                 }, {});
                 setguropData(productCounts)
@@ -82,7 +80,7 @@ const QrcodeScanList = () => {
             <div className="product-container">
                 {loading && <p>Loading...</p>}
                 {error && <p>{error}</p>}
-                {data && data.map((item, idx) => <p key={item.QRCODEID}>{idx + 1}.{item.QRCODEID}{item.PRODUCT_NAME}</p>)}
+                {data && data.map((item, idx) => <p key={item.qrcodeid}>{idx + 1}.{item.qrcodeid}{item.product_name}</p>)}
             </div>
             <div className="upload-message-container">
                 {Uploadprogress && <h3>上傳中...</h3>}
@@ -91,7 +89,7 @@ const QrcodeScanList = () => {
             </div>
             <div className="btn-container">
                 <Link to='/scaner'><Button className="black w-full">返回上一頁</Button></Link>
-                <Button onClick={handleUpload} disabled={error || IsUpload==='success'} className="black w-full">確定上傳</Button>
+                <Button onClick={handleUpload} disabled={error || IsUpload==='success'|| data.length === 0} className="black w-full">確定上傳</Button>
             </div>
         </div>
     );
