@@ -3,7 +3,8 @@ import ApiService from "../service/api";
 import PageTitle from "../component/page_tile";
 import { Link } from "react-router-dom";
 import Button from "../component/button";
-
+import { logout } from "../auth/authSlice";
+import { useDispatch } from "react-redux";
 
 const QrcodeScanList = () => {
     const [data, setData] = useState("");
@@ -12,8 +13,10 @@ const QrcodeScanList = () => {
     const [error, setError] = useState(null);
     const [Uploadprogress, setUploadprogress] = useState(false);
     const [IsUpload, setUpload] = useState(null);
+    const dispatch = useDispatch()
     const api = new ApiService()
-
+    const user_token = localStorage.getItem('user_token')
+    api.setAuthorizationToken(user_token);
     const handleUpload = async () => {
         
         const SYSTEM_ADMIN_CODE = localStorage.getItem('SYSTEM_ADMIN_CODE')
@@ -38,6 +41,10 @@ const QrcodeScanList = () => {
 
         } catch (error) {
             console.log(error)
+            if(error.status === 401 ||error.status === 403){
+                alert(error.message)
+                dispatch(logout())
+            }
             console.error("Upload failed:", error.message);
             setUpload("error")
             setUploadprogress(false)

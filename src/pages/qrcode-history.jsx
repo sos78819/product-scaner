@@ -50,7 +50,7 @@ const QrcodeHistory = () => {
         } catch (err) {
             console.log(err)
             if(err.status === 401 ||err.status === 403){
-                alert('請重新登入')
+                alert(err.message)
                 dispatch(logout())
             }
             setError(err.message);

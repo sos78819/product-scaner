@@ -13,9 +13,10 @@ const QrcodeScaner = () => {
     const [isScan, setIsScan] = useState(false)
     const [errorMessage, setErrorMessage] = useState(null)
     const [params, setParams] = useState([]);
-  
+
 
     const api = new ApiService()
+    const wtq_api = new ApiService('http://192.168.30.59:8080')
 
     const scanHandler = (result) => {
         if (result) {
@@ -35,7 +36,13 @@ const QrcodeScaner = () => {
             setParams(paramList)
             setTimeout(() => setIsScan(false), 1000)
             if (QRCODEID) {
-                //呼叫api查詢商品資訊
+                //先確認有無token
+                const wtq_token = localStorage.getItem('token')
+                if (!wtq_token) {
+                    getToken(QRCODEID)
+                }
+
+                //呼叫api查詢商品資訊                
                 console.log(QRCODEID)
                 fetchQrcode(QRCODEID[0].value)
             } else {
@@ -44,13 +51,31 @@ const QrcodeScaner = () => {
         }
 
     }
+    const getToken = async (QRCODEID) => {
+        try {
+            const response = await wtq_api.get('/qr/token',
+                {
+                    "API_KEY": "fa1441e33f3c1ba33c0b"
+                }
+            )
+            localStorage.setItem('token', response.data.TOKEN);
+            fetchQrcode(QRCODEID[0].value)
+
+        } catch (error) {
+            console.error('取得token失敗', error);
+        }
+
+    }
+
     const fetchQrcode = async (QrCode) => {
         try {
-            const response = await api.get("/getQrcodeList", { "QrCode": QrCode })
+            const token = localStorage.getItem('token')
+            //wtq_api.setAuthorizationToken(token);
+            const response = await  wtq_api.get("/qr/check", { "QrCode": QrCode,"token":token })
             const productListData = response.data
-            if (productListData.length) {                
+            if (productListData.length) {
                 //如果有該id，儲存scanData
-                saveScanData(productListData[0])  
+                saveScanData(productListData[0])
             }
         } catch (error) {
             console.log(error)
@@ -61,12 +86,14 @@ const QrcodeScaner = () => {
     const saveScanData = async (product) => {
         try {
             const SCAN_USRID = localStorage.getItem('SYSTEM_ADMIN_CODE');
-            await api.post("aAddscan", {          
+            const user_token = localStorage.getItem('user_token')
+            api.setAuthorizationToken(user_token);
+            await api.post("aAddscan", {
                 PRODUCT_NAME: product.ProductName,
                 QRCODEID: product.QrCode,
-                PRODUCT_CODE: product.ProductCode,      
+                PRODUCT_CODE: product.ProductCode,
                 SCAN_USRID: SCAN_USRID,
-                ORIGINAL_STATUS:product.Status
+                ORIGINAL_STATUS: product.Status
             });
             setProductInfo(product)
             setErrorMessage(null)
@@ -98,7 +125,7 @@ const QrcodeScaner = () => {
             {productInfo ? <>
                 <p>{productInfo.ProductName}{productInfo.ProductCode}</p>
                 <p>掃描完成</p>
-            </>:<p>掃描QR CODE貼紙</p>}
+            </> : <p>掃描QR CODE貼紙</p>}
             {errorMessage && <p>{errorMessage}</p>}
 
 

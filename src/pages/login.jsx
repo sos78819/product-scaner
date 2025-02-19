@@ -61,23 +61,6 @@ const Login = () => {
             alert(error.response?error.response.data.message:error.message)
         }
     }
-    // const getToken = async () =>{
-    //     try {
-    //         const response = await axios.get('http://192.168.30.59:8080/qr/token',
-    //             {
-    //                 "API_KEY":"fa1441e33f3c1ba33c0b"
-    //             }
-
-    //         )
-    //         localStorage.setItem('token', response.data.TOKEN);
-    //         console.log('登入成功', response.data);
-    //         navigate('/')
-    //     } catch (error) {
-    //         console.error('登入錯誤', error);
-    //         //alert(error.response.data.message)
-    //     }
-
-    // }
 
 
     return (
