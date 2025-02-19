@@ -6,12 +6,15 @@ import DatePickerOpenTo from "../component/date-picker-open-to";
 import { useState } from "react";
 import ApiService from "../service/api";
 import dayjs from "dayjs";
+import { logout } from "../auth/authSlice";
+import { useDispatch } from "react-redux";
 import '../css/_qrcode-history.css'
 
 const QrcodeHistory = () => {
     const [data, setData] = useState("")
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const dispatch = useDispatch()
     const api = new ApiService()
     const {
         control,
@@ -46,6 +49,10 @@ const QrcodeHistory = () => {
             setData(data);
         } catch (err) {
             console.log(err)
+            if(err.status === 401 ||err.status === 403){
+                alert('請重新登入')
+                dispatch(logout())
+            }
             setError(err.message);
         } finally {
             setLoading(false);

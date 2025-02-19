@@ -5,13 +5,14 @@ import { useDispatch } from "react-redux";
 import { login } from "../auth/authSlice";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import axios from "axios";
+import ApiService from "../service/api";
 import '../css/_login.css'
 
 const Login = () => {
     const { register, formState: { errors }, handleSubmit } = useForm();
     const dispatch = useDispatch();
     const navigate = useNavigate()
+    const api = new ApiService()
 
     // 獲取當前網址
     // const url = window.location.href;
@@ -41,7 +42,7 @@ const Login = () => {
     const loginhandler = async (SYSTEM_ADMIN_CODE, Password) => {
         //先暫時用api-key取得token
         try {
-            const response = await axios.post(
+            const response = await api.post(
                 'http://localhost:3000/login',
                 {
                     SYSTEM_ADMIN_CODE: SYSTEM_ADMIN_CODE,
@@ -56,11 +57,9 @@ const Login = () => {
             localStorage.setItem('user_token', response.data.token);
             navigate('/')
         } catch (error) {
-            console.error('登入錯誤', error);
-            alert(error.response.data.message)
+            console.log('登入錯誤', error);
+            alert(error.response?error.response.data.message:error.message)
         }
-
-
     }
     // const getToken = async () =>{
     //     try {
