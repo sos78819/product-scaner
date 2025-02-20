@@ -5,7 +5,8 @@ import { useState, useRef } from "react"
 import { Link } from "react-router-dom"
 import ApiService from "../service/api"
 import dayjs from "dayjs"
-
+import { useDispatch } from "react-redux";
+import { logout } from "../auth/authSlice"
 
 const QrcodeInput = () => {
     const inputRef = useRef(null);
@@ -14,12 +15,16 @@ const QrcodeInput = () => {
     const [errorMessage, setErrorMessage] = useState(null)
 
     const api = new ApiService()
+    const wtq_api = new ApiService('http://192.168.30.59:8080')
+    const dispatch = useDispatch()
     const InputHandler = async () => {
         const InptQrcode = inputRef.current.value;
+        const token = localStorage.getItem('token')
         console.log(InptQrcode)
         try {
-            const response = await api.get("/getQrcodeList", { "SerialCode": InptQrcode })
-            const productListData = response.data
+            const response = await wtq_api.post("/qr/check", { "SerialCode": InptQrcode, TOKEN: token })
+            const productListData = response.data.data
+            console.log(productListData)
             setErrorMessage(null)
             if (productListData.length > 1) {
                 setproductList(productListData)
@@ -33,30 +38,31 @@ const QrcodeInput = () => {
     }
 
     const selectProduct = async (ExpireDate) => {
-       
+
         const selectProductInfo = productList.filter((item) => item.ExpireDate === ExpireDate)
         console.log(selectProductInfo)
         const SCAN_USRID = localStorage.getItem('SYSTEM_ADMIN_CODE')
+        const user_token = localStorage.getItem('user_token')
+        api.setAuthorizationToken(user_token);
         try {
-            await api.post("addScanData", {
-                SCCSID: "",
-                UID: 1,
+            await api.post("Addscan", {
                 PRODUCT_NAME: selectProductInfo[0].ProductName,
                 QRCODEID: selectProductInfo[0].QrCode,
                 PRODUCT_CODE: selectProductInfo[0].ProductCode,
-                POINTS: "",
-                CONTENTS: "",
-                SCAN_YMDTIME: dayjs().format('YYYY-MM-DD'),
                 SCAN_USRID: SCAN_USRID,
-                UPDATE_YMDTIME: "",
-                UPDATE_USRID: "",
+                ORIGINAL_STATUS: selectProductInfo[0].Status
+
             })
-            
+
             setProductInfo(selectProductInfo[0])
             setproductList(null)
 
         } catch (error) {
-            console.log('error',error.message)
+            console.log('error', error)
+            if (error.status === 401 || error.status === 403) {
+                alert(error.message)
+                dispatch(logout())
+            }
             setErrorMessage(error.message)
             setproductList(null)
         }
@@ -72,7 +78,7 @@ const QrcodeInput = () => {
                     {productList.map((item) =>
                         <div onClick={() => selectProduct(item.ExpireDate)} className="select_product_item" key={`${item.QrCode}`}>
                             <h3>{item.ProductName}</h3>
-                            <h3>點數獲得時間：{item.ExpireDate}</h3>
+                            <h3>點數獲得時間：{dayjs(item.ExpireDate).format('YYYY-MM-DD')}</h3>
                         </div>)
                     }
                 </div> :
@@ -82,7 +88,7 @@ const QrcodeInput = () => {
                             inputRef={inputRef}
                             onClick={InputHandler}
                         />
-                        {productInfo &&!errorMessage && <div className="product-info"> <p>{productInfo.ProductName}{productInfo.QrCode}</p><p>輸入完成</p></div>}
+                        {productInfo && !errorMessage && <div className="product-info"> <p>{productInfo.ProductName}{productInfo.QrCode}</p><p>輸入完成</p></div>}
                         {errorMessage && <div className="product-info">{errorMessage}</div>}
                     </div>
                     <div className="btn-container">

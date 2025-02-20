@@ -38,7 +38,7 @@ function App() {
     },
     {
       path:'/qrcode-input',
-      element:<QrcodeInput/>
+      element:isLogin ?<QrcodeInput/>:<Navigate to='/login' />
     }
     ])
   return (

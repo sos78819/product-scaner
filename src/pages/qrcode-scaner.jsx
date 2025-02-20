@@ -5,15 +5,17 @@ import Button from "../component/button"
 import { Link } from "react-router-dom"
 import ScanLebel from "../component/scan-lebel"
 import ApiService from "../service/api"
-import dayjs from "dayjs"
+import { useDispatch } from "react-redux";
+import { logout } from "../auth/authSlice"
 import '../css/_qrcode-scaner.css'
+
 
 const QrcodeScaner = () => {
     const [productInfo, setProductInfo] = useState(null)
     const [isScan, setIsScan] = useState(false)
     const [errorMessage, setErrorMessage] = useState(null)
     const [params, setParams] = useState([]);
-
+    const dispatch = useDispatch()
 
     const api = new ApiService()
     const wtq_api = new ApiService('http://192.168.30.59:8080')
@@ -32,9 +34,10 @@ const QrcodeScaner = () => {
                 paramList.push({ key, value });
             }
             console.log(paramList)
-            const QRCODEID = paramList.filter((param) => param.key === "qrCode")
+            const QRCODEID = paramList[0].value
             setParams(paramList)
             setTimeout(() => setIsScan(false), 1000)
+            console.log('QRCODEID', QRCODEID)
             if (QRCODEID) {
                 //先確認有無token
                 const wtq_token = localStorage.getItem('token')
@@ -43,8 +46,8 @@ const QrcodeScaner = () => {
                 }
 
                 //呼叫api查詢商品資訊                
-                console.log(QRCODEID)
-                fetchQrcode(QRCODEID[0].value)
+
+                fetchQrcode(QRCODEID)
             } else {
                 setErrorMessage("Qrcode不正確，請重新掃描或手動輸入")
             }
@@ -53,28 +56,32 @@ const QrcodeScaner = () => {
     }
     const getToken = async (QRCODEID) => {
         try {
-            const response = await wtq_api.get('/qr/token',
+            const response = await wtq_api.post('/qr/token',
                 {
                     "API_KEY": "fa1441e33f3c1ba33c0b"
                 }
             )
-            localStorage.setItem('token', response.data.TOKEN);
-            fetchQrcode(QRCODEID[0].value)
+            console.log('res', response)
+            localStorage.setItem('token', response.data.data.TOKEN);
+            fetchQrcode(QRCODEID)
 
         } catch (error) {
             console.error('取得token失敗', error);
+            alert('無法取得憑證');
         }
 
     }
 
     const fetchQrcode = async (QrCode) => {
+        const token = localStorage.getItem('token')
         try {
-            const token = localStorage.getItem('token')
+           
             //wtq_api.setAuthorizationToken(token);
-            const response = await  wtq_api.get("/qr/check", { "QrCode": QrCode,"token":token })
-            const productListData = response.data
+            const response = await wtq_api.post("/qr/check", { "QrCode": QrCode, "TOKEN": token })
+            const productListData = response.data.data
+            console.log(productListData)
             if (productListData.length) {
-                //如果有該id，儲存scanData
+                //如果有該id，儲存scanData               
                 saveScanData(productListData[0])
             }
         } catch (error) {
@@ -84,11 +91,12 @@ const QrcodeScaner = () => {
     }
 
     const saveScanData = async (product) => {
+        console.log('product', product)
         try {
             const SCAN_USRID = localStorage.getItem('SYSTEM_ADMIN_CODE');
             const user_token = localStorage.getItem('user_token')
             api.setAuthorizationToken(user_token);
-            await api.post("aAddscan", {
+            await api.post("Addscan", {
                 PRODUCT_NAME: product.ProductName,
                 QRCODEID: product.QrCode,
                 PRODUCT_CODE: product.ProductCode,
@@ -99,6 +107,10 @@ const QrcodeScaner = () => {
             setErrorMessage(null)
         } catch (error) {
             console.error("保存掃描數據時出錯:", error);
+            if (error.status === 401 || error.status === 403) {
+                alert(error.message)
+                dispatch(logout())
+            }
             setErrorMessage(error.message)
         }
     }
@@ -111,7 +123,7 @@ const QrcodeScaner = () => {
             <Scanner
                 onScan={scanHandler}
                 scanDelay={1000}
-                allowMultiple={false}
+                allowMultiple={true}
                 styles={
                     {
                         finderBorder: 30
