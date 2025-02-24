@@ -19,17 +19,21 @@ const QrcodeInput = () => {
     const dispatch = useDispatch()
     const InputHandler = async () => {
         const InptQrcode = inputRef.current.value;
-        const token = localStorage.getItem('token')
+        const wtq_token = localStorage.getItem('token')
+        console.log(wtq_token)
         console.log(InptQrcode)
         try {
-            const response = await wtq_api.post("/qr/check", { "SerialCode": InptQrcode, TOKEN: token })
+            wtq_api.setAuthorizationToken(wtq_token);
+            const response = await wtq_api.post("/qr/checkStatus", { "SerialCode": InptQrcode, })
             const productListData = response.data.data
             console.log(productListData)
             setErrorMessage(null)
             if (productListData.length > 1) {
                 setproductList(productListData)
-            } else {
+            } else if(productListData.length === 1){
                 setProductInfo(productListData[0])
+            }else{
+                setErrorMessage('查無該SerialCode')
             }
         } catch (error) {
             console.log(error)

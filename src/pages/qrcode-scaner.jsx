@@ -1,6 +1,6 @@
 import PageTitle from "../component/page_tile"
 import { Scanner } from "@yudiel/react-qr-scanner"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Button from "../component/button"
 import { Link } from "react-router-dom"
 import ScanLebel from "../component/scan-lebel"
@@ -16,9 +16,33 @@ const QrcodeScaner = () => {
     const [errorMessage, setErrorMessage] = useState(null)
     const [params, setParams] = useState([]);
     const dispatch = useDispatch()
-
     const api = new ApiService()
     const wtq_api = new ApiService('http://192.168.30.59:8080')
+
+    const [wtq_token, setWtq_token] = useState(localStorage.getItem('token'));
+
+    useEffect(() => {
+        const checkToken = async () => {
+            if (!wtq_token) {
+                try {
+                    console.log('🔄 無 Token，正在獲取新 Token...');
+                    const newToken = await wtq_api.refreshToken();
+                    if (newToken !== null) {
+                        localStorage.setItem('token', newToken);
+                        setWtq_token(newToken); // 更新 state
+                        console.log('✅ 新 Token 獲取成功:', newToken);
+                    }
+                } catch (error) {
+                    console.error('❌ 獲取 Token 失敗:', error);
+                }
+            }
+        };
+
+        checkToken();
+    }, [wtq_token]);
+
+
+
 
     const scanHandler = (result) => {
         if (result) {
@@ -39,14 +63,7 @@ const QrcodeScaner = () => {
             setTimeout(() => setIsScan(false), 1000)
             console.log('QRCODEID', QRCODEID)
             if (QRCODEID) {
-                //先確認有無token
-                const wtq_token = localStorage.getItem('token')
-                if (!wtq_token) {
-                    getToken(QRCODEID)
-                }
-
-                //呼叫api查詢商品資訊                
-
+                //呼叫api查詢商品資訊              
                 fetchQrcode(QRCODEID)
             } else {
                 setErrorMessage("Qrcode不正確，請重新掃描或手動輸入")
@@ -54,35 +71,19 @@ const QrcodeScaner = () => {
         }
 
     }
-    const getToken = async (QRCODEID) => {
-        try {
-            const response = await wtq_api.post('/qr/token',
-                {
-                    "API_KEY": "fa1441e33f3c1ba33c0b"
-                }
-            )
-            console.log('res', response)
-            localStorage.setItem('token', response.data.data.TOKEN);
-            fetchQrcode(QRCODEID)
 
-        } catch (error) {
-            console.error('取得token失敗', error);
-            alert('無法取得憑證');
-        }
-
-    }
 
     const fetchQrcode = async (QrCode) => {
-        const token = localStorage.getItem('token')
         try {
-           
-            //wtq_api.setAuthorizationToken(token);
-            const response = await wtq_api.post("/qr/check", { "QrCode": QrCode, "TOKEN": token })
+            wtq_api.setAuthorizationToken(wtq_token);
+            const response = await wtq_api.post("/qr/checkStatus", { "QrCode": QrCode, })
             const productListData = response.data.data
             console.log(productListData)
-            if (productListData.length) {
+            if (productListData.length !== 0) {
                 //如果有該id，儲存scanData               
                 saveScanData(productListData[0])
+            }else{
+                setErrorMessage("查無該QrcodID")
             }
         } catch (error) {
             console.log(error)
@@ -106,7 +107,7 @@ const QrcodeScaner = () => {
             setProductInfo(product)
             setErrorMessage(null)
         } catch (error) {
-            console.error("保存掃描數據時出錯:", error);
+            console.log("保存掃描數據時出錯:", error);
             if (error.status === 401 || error.status === 403) {
                 alert(error.message)
                 dispatch(logout())
