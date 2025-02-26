@@ -82,7 +82,7 @@ const QrcodeInput = () => {
                     {productList.map((item) =>
                         <div onClick={() => selectProduct(item.ExpireDate)} className="select_product_item" key={`${item.QrCode}`}>
                             <h3>{item.ProductName}</h3>
-                            <h3>點數獲得時間：{dayjs(item.ExpireDate).format('YYYY-MM-DD')}</h3>
+                            <h3>有效期限：{dayjs(item.ExpireDate).format('YYYY-MM-DD')}</h3>
                         </div>)
                     }
                 </div> :

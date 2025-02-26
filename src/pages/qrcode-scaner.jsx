@@ -83,7 +83,7 @@ const QrcodeScaner = () => {
                 //如果有該id，儲存scanData               
                 saveScanData(productListData[0])
             }else{
-                setErrorMessage("查無該QrcodID")
+                setErrorMessage("查無該QrcodID，請重新掃描或手動輸入")
             }
         } catch (error) {
             console.log(error)
@@ -137,6 +137,7 @@ const QrcodeScaner = () => {
         <div className="product-info">
             {productInfo ? <>
                 <p>{productInfo.ProductName}{productInfo.ProductCode}</p>
+                {productInfo.status === "2" && <p>該筆已退貨</p>}
                 <p>掃描完成</p>
             </> : <p>掃描QR CODE貼紙</p>}
             {errorMessage && <p>{errorMessage}</p>}

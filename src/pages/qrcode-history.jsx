@@ -5,10 +5,11 @@ import { Link } from "react-router-dom";
 import DatePickerOpenTo from "../component/date-picker-open-to";
 import { useState } from "react";
 import ApiService from "../service/api";
-import dayjs from "dayjs";
+import BasicTable from "../component/table";
 import { logout } from "../auth/authSlice";
 import { useDispatch } from "react-redux";
 import '../css/_qrcode-history.css'
+
 
 const QrcodeHistory = () => {
     const [data, setData] = useState("")
@@ -39,7 +40,7 @@ const QrcodeHistory = () => {
 
     const fetchData = async (formattedDate) => {
         setLoading(true);
-        
+
         try {
             const response = await api.get(
                 `/scanResumeByDate?UPDATE_YMDTIME=${formattedDate}`,
@@ -49,7 +50,7 @@ const QrcodeHistory = () => {
             setData(data);
         } catch (err) {
             console.log(err)
-            if(err.status === 401 ||err.status === 403){
+            if (err.status === 401 || err.status === 403) {
                 alert(err.message)
                 dispatch(logout())
             }
@@ -70,12 +71,10 @@ const QrcodeHistory = () => {
                     <Button className="black qrcode-history-btn " type="submit">查詢</Button>
                 </form>
             </div>
-            <p><strong>總筆數：{data.length}</strong></p>
-            <div>
+            <p><strong>總筆數：{data.length}</strong></p>          
                 {loading && <p>Loading...</p>}
                 {error && <p>{error}</p>}
-                {data && data.map((item) => <p key={item.qrcodeid}><span>{dayjs(item.update_ymdtime).format("YYYY-MM-DD")}</span><span className="codeId"><strong>{item.qrcodeid}</strong></span>{item.product_name}</p>)}
-            </div>
+                {data && <BasicTable rows={data}/>}            
             <Link to="/"><Button className="black qrcode-history-btn">返回上一步</Button></Link>
         </div>
     )
