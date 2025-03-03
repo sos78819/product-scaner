@@ -15,40 +15,81 @@ const QrcodeScanList = () => {
     const [IsUpload, setUpload] = useState(null);
     const dispatch = useDispatch()
     const api = new ApiService()
+    const delete_api = new ApiService()
     const user_token = localStorage.getItem('user_token')
     api.setAuthorizationToken(user_token);
+    
     const handleUpload = async () => {
-        
+        try {
+            setUploadprogress(true); // 開始上傳前設置進度
+            console.log("開始刪除 QRCode...");
+            await deleteQrcode(); // 先刪除
+            console.log("刪除完成，開始更新掃描記錄...");
+            await updateScan(); // 再更新
+            console.log("更新完成！");
+        } catch (error) {
+            console.error("handleUpload 過程中發生錯誤:", error);
+            setUpload("error");
+        } finally {
+            setUploadprogress(false); // 不論成功或失敗都要關閉進度狀態
+        }
+    };
+
+    //執行put
+    const updateScan = async () => {
         const SYSTEM_ADMIN_CODE = localStorage.getItem('SYSTEM_ADMIN_CODE')
         const updateData = {
             QRCODEIDs: data.map(item => item.qrcodeid),
-            UPDATE_USRID: SYSTEM_ADMIN_CODE  
+            UPDATE_USRID: SYSTEM_ADMIN_CODE
         };
         console.log('updateData', updateData)
         try {
-            setUploadprogress(true)
             const response = await api.put("/updateScanResume",
                 updateData
             );
             console.log(response)
             if (response.status === 200) {
                 setUpload("success")
-                setUploadprogress(false)
+
             } else {
                 setUpload("error")
-                setUploadprogress(false)
             }
-
         } catch (error) {
             console.log(error)
-            if(error.status === 401 ||error.status === 403){
+            if (error.status === 401 || error.status === 403) {
                 alert(error.message)
                 dispatch(logout())
             }
             console.error("Upload failed:", error.message);
             setUpload("error")
-            setUploadprogress(false)
+
         }
+
+    }
+    //執行刪除
+    const deleteQrcode = async () => {
+        try {
+            await Promise.all(data.map(item =>
+                delete_api.delete(`/api/qr-codes`,
+                    {
+                        data: {  
+                            "operation_request_id": "09kadeAKsWF123sdfasaS",
+                            "point_give_cancel_date": "",
+                            "sevice_code": "SCCS",
+                            "accounting_base_date": ""
+                        },
+                        headers: {  // headers 放在這裡
+                            'qr_code_uid': item.qrcode_id
+                        }
+                    }
+
+                )
+            ));
+            console.log("所有 QRCode 已刪除");
+        } catch (error) {
+            console.error("刪除過程中發生錯誤:", error);
+
+        };
     }
 
     useEffect(() => {
@@ -63,7 +104,7 @@ const QrcodeScanList = () => {
                 }, {});
                 setguropData(productCounts)
                 setData(data);
-            } catch (err) {                
+            } catch (err) {
                 setError(err.message)
             } finally {
                 setLoading(false);
@@ -78,7 +119,7 @@ const QrcodeScanList = () => {
     return (
         <div className="page-container">
             <PageTitle>上傳掃描資訊</PageTitle>
-            <h2>{IsUpload === "success"?'總計上傳數量':'總計掃描數量'}：{data.length}</h2>
+            <h2>{IsUpload === "success" ? '總計上傳數量' : '總計掃描數量'}：{data.length}</h2>
             <div className="product-group-container">
                 {data && Object.entries(guropData).map(([product, count]) => (
                     <p key={product}><span><strong>{product}</strong>：</span>{count}個</p>
@@ -96,7 +137,7 @@ const QrcodeScanList = () => {
             </div>
             <div className="btn-container">
                 <Link to='/scaner'><Button className="black w-full">返回上一頁</Button></Link>
-                <Button onClick={handleUpload} disabled={error || IsUpload==='success'|| data.length === 0} className="black w-full">確定上傳</Button>
+                <Button onClick={handleUpload} disabled={error || IsUpload === 'success' || data.length === 0} className="black w-full">確定上傳</Button>
             </div>
         </div>
     );
