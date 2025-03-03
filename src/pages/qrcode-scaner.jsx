@@ -14,10 +14,10 @@ const QrcodeScaner = () => {
     const [productInfo, setProductInfo] = useState(null)
     const [isScan, setIsScan] = useState(false)
     const [errorMessage, setErrorMessage] = useState(null)
-    const [params, setParams] = useState([]);
     const dispatch = useDispatch()
     const api = new ApiService()
-    const wtq_api = new ApiService('http://192.168.30.59:8080')
+    const wtq_api = new ApiService(import.meta.env.VITE_BASEURL)
+    const check_api = new ApiService()
 
     const [wtq_token, setWtq_token] = useState(localStorage.getItem('token'));
 
@@ -51,15 +51,8 @@ const QrcodeScaner = () => {
             const cleanedUrl = result[0].rawValue.replace(/^"|"$/g, '');
             const parsedUrl = new URL(cleanedUrl);
             const urlParams = new URLSearchParams(parsedUrl.search);
-            const paramList = [];
+            const QRCODEID = urlParams.get('qrcode');
 
-            // 迭代所有參數並構建成 key-value 對
-            for (const [key, value] of urlParams) {
-                paramList.push({ key, value });
-            }
-            console.log(paramList)
-            const QRCODEID = paramList[0].value
-            setParams(paramList)
             setTimeout(() => setIsScan(false), 1000)
             console.log('QRCODEID', QRCODEID)
             if (QRCODEID) {
@@ -82,7 +75,7 @@ const QrcodeScaner = () => {
             if (productListData.length !== 0) {
                 //如果有該id，儲存scanData               
                 saveScanData(productListData[0])
-            }else{
+            } else {
                 setErrorMessage("查無該QrcodID，請重新掃描或手動輸入")
             }
         } catch (error) {
@@ -97,7 +90,18 @@ const QrcodeScaner = () => {
             const SCAN_USRID = localStorage.getItem('SYSTEM_ADMIN_CODE');
             const user_token = localStorage.getItem('user_token')
             api.setAuthorizationToken(user_token);
-            await api.post("Addscan", {
+
+            // 若 Status 為 0，則先檢查狀態
+            if (product.Status === 0) {
+                console.log("狀態為 0，開始執行 checkStatus");
+                const statusCheckSuccess = await checkStatus(product.QrCode);
+
+                if (statusCheckSuccess) {
+                    product.Status = 1;
+                }
+
+            }
+            await api.post("/Addscan", {
                 PRODUCT_NAME: product.ProductName,
                 QRCODEID: product.QrCode,
                 PRODUCT_CODE: product.ProductCode,
@@ -115,6 +119,29 @@ const QrcodeScaner = () => {
             setErrorMessage(error.message)
         }
     }
+
+    const checkStatus = async (qrCode) => {
+        try {
+            const response = await check_api.get('/api/qr_codes',
+                {
+                    headers: {
+                        'qr_code_uid': qrCode // 
+                    }
+                }
+            );
+
+            if (response.status === 200 && response.data) {
+                console.log(`checkStatus 成功: ${qrCode}`);
+                return true;
+            } else {
+                console.warn(`查無: ${qrCode}`);
+                return false;
+            }
+        } catch (error) {
+            console.error("checkStatus 發生錯誤:", error);
+            return false;
+        }
+    };
 
 
     return <div className="page-container">

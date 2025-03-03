@@ -15,7 +15,8 @@ const QrcodeInput = () => {
     const [errorMessage, setErrorMessage] = useState(null)
 
     const api = new ApiService()
-    const wtq_api = new ApiService('http://192.168.30.59:8080')
+    const wtq_api = new ApiService(import.meta.env.BASE_URL)
+    const check_api = new ApiService()
     const dispatch = useDispatch()
     const InputHandler = async () => {
         const InptQrcode = inputRef.current.value;
@@ -30,9 +31,9 @@ const QrcodeInput = () => {
             setErrorMessage(null)
             if (productListData.length > 1) {
                 setproductList(productListData)
-            } else if(productListData.length === 1){
+            } else if (productListData.length === 1) {
                 setProductInfo(productListData[0])
-            }else{
+            } else {
                 setErrorMessage('查無該SerialCode')
             }
         } catch (error) {
@@ -49,7 +50,17 @@ const QrcodeInput = () => {
         const user_token = localStorage.getItem('user_token')
         api.setAuthorizationToken(user_token);
         try {
-            await api.post("Addscan", {
+            // 若 Status 為 0，則先檢查狀態
+            if (selectProductInfo[0].Status === 0) {
+                console.log("狀態為 0，開始執行 checkStatus");
+                const statusCheckSuccess = await checkStatus(selectProductInfo[0].QrCode);
+
+                if (statusCheckSuccess) {
+                    selectProductInfo[0].Status = 1;
+                }
+
+            }
+            await api.post("/Addscan", {
                 PRODUCT_NAME: selectProductInfo[0].ProductName,
                 QRCODEID: selectProductInfo[0].QrCode,
                 PRODUCT_CODE: selectProductInfo[0].ProductCode,
@@ -72,6 +83,29 @@ const QrcodeInput = () => {
         }
 
     }
+
+    const checkStatus = async (qrCode) => {
+        try {
+            const response = await check_api.get('/api/qr_codes',
+                {
+                    headers: {
+                        'qr_code_uid': qrCode // 
+                    }
+                }
+            );
+
+            if (response.status === 200 && response.data) {
+                console.log(`checkStatus 成功: ${qrCode}`);
+                return true;
+            } else {
+                console.warn(`查無: ${qrCode}`);
+                return false;
+            }
+        } catch (error) {
+            console.error("checkStatus 發生錯誤:", error);
+            return false;
+        }
+    };
 
     return (
         <div className="page-container">
