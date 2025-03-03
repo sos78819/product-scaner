@@ -18,10 +18,10 @@ class ApiService {
     // 設定請求攔截器（僅攔截 `protectedRoutes` 內的 API）
     this.axiosInstance.interceptors.request.use(
       async (config) => {
-        const pathname = new URL(config.url, window.location.origin).pathname; 
+        const pathname = new URL(config.url, window.location.origin).pathname;
         if (this.protectedRoutes.includes(pathname)) {
-          const token = localStorage.getItem('token');        
-          if (token) {           
+          const token = localStorage.getItem('token');
+          if (token) {
             config.headers.Authorization = `Bearer ${token}`;
           }
         }
@@ -35,7 +35,7 @@ class ApiService {
       (response) => response,
       async (error) => {
         const originalRequest = error.config;
-       
+
         if (error.response) {
           const status = error.response.status;
           console.error('❌ API Error Status:', status);
@@ -46,7 +46,7 @@ class ApiService {
         console.log(pathname)
         if (
           this.protectedRoutes.includes(pathname) &&
-          (error.response?.status === 401 ||error.response?.status === 403) &&
+          (error.response?.status === 401 || error.response?.status === 403) &&
           !originalRequest._retry
         ) {
           originalRequest._retry = true;
@@ -57,7 +57,7 @@ class ApiService {
             if (!newToken) {
               console.error('🔴 無法獲取新 Token');
               return Promise.reject(error); // 直接拋出原始錯誤
-            }           
+            }
             localStorage.setItem('token', newToken);
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
@@ -79,8 +79,8 @@ class ApiService {
   // **透過 API_KEY 取得新 Token**
   async refreshToken() {
     try {
-      const response = await axios.post('http://192.168.30.59:8080/qr/token', {
-        API_KEY: 'fa1441e33f3c1ba33c0b',
+      const response = await axios.post(`${import.meta.env.VITE_BASEURL}/qr/token`, {
+        API_KEY: import.meta.env.VITE_APIKEY,
       });
       return response.data?.data?.TOKEN || null; // 確保回傳正確的 Token
     } catch (error) {
@@ -92,7 +92,7 @@ class ApiService {
   // **統一的錯誤處理方法**
   handleError(error) {
     console.log('handleError', error);
-    
+
     if (error.isHandled) {
       return error; // 避免重複處理錯誤
     }
@@ -132,7 +132,7 @@ class ApiService {
       }
       console.error(`❌ API Error (${status} - ${errorCode}):`, errorMessage);
     } else if (error.request) {
-      errorMessage = '伺服器無回應，請檢查網路';
+      errorMessage = '伺服器無回應';
       console.error('❌ No response received:', error.request);
     } else {
       errorMessage = error.message || '未知錯誤';
@@ -143,17 +143,22 @@ class ApiService {
   }
 
   // **GET 請求**
-  async get(url, params = {}) {
-    try {
-      const response = await this.axiosInstance.get(url, { params });
-      return response;
-    } catch (error) {
-      if (!error.isHandled) { // 確保 `handleError` 只執行一次
-        throw this.handleError(error);
-      }
-      throw error;
+// **GET 請求**
+async get(url, params = {}, headers = {}) {
+  try {
+    const response = await this.axiosInstance.get(url, {
+      params: params,  
+      headers: headers 
+    });
+    return response;
+  } catch (error) {
+    if (!error.isHandled) { // 確保 `handleError` 只執行一次
+      throw this.handleError(error);
     }
+    throw error;
   }
+}
+
 
   // **POST 請求**
   async post(url, data) {
@@ -172,6 +177,21 @@ class ApiService {
   async put(url, data) {
     try {
       const response = await this.axiosInstance.put(url, data);
+      return response;
+    } catch (error) {
+      if (!error.isHandled) {
+        throw this.handleError(error);
+      }
+      throw error;
+    }
+  }
+  // **delete 請求**
+  async delete(url, data, headers) {
+    try {
+      const response = await this.axiosInstance.delete(url, {
+        data: data,        
+        headers: headers   
+      });
       return response;
     } catch (error) {
       if (!error.isHandled) {
