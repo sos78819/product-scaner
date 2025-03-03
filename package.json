@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:prod": "vite build --mode production",
+    "dev:local": "vite --mode development"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
