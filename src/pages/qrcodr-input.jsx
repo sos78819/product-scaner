@@ -15,8 +15,8 @@ const QrcodeInput = () => {
     const [errorMessage, setErrorMessage] = useState(null)
 
     const api = new ApiService()
-    const wtq_api = new ApiService(import.meta.env.BASE_URL)
-    const check_api = new ApiService()
+    const wtq_api = new ApiService(import.meta.env.VITE_BASEURL)
+    const check_api = new ApiService('http://localhost:3001')
     const dispatch = useDispatch()
     const InputHandler = async () => {
         const InptQrcode = inputRef.current.value;
@@ -33,6 +33,8 @@ const QrcodeInput = () => {
                 setproductList(productListData)
             } else if (productListData.length === 1) {
                 setProductInfo(productListData[0])
+                //儲存
+                saveScanData(productListData[0])
             } else {
                 setErrorMessage('查無該SerialCode')
             }
@@ -50,25 +52,8 @@ const QrcodeInput = () => {
         const user_token = localStorage.getItem('user_token')
         api.setAuthorizationToken(user_token);
         try {
-            // 若 Status 為 0，則先檢查狀態
-            if (selectProductInfo[0].Status === 0) {
-                console.log("狀態為 0，開始執行 checkStatus");
-                const statusCheckSuccess = await checkStatus(selectProductInfo[0].QrCode);
 
-                if (statusCheckSuccess) {
-                    selectProductInfo[0].Status = 1;
-                }
-
-            }
-            await api.post("/Addscan", {
-                PRODUCT_NAME: selectProductInfo[0].ProductName,
-                QRCODEID: selectProductInfo[0].QrCode,
-                PRODUCT_CODE: selectProductInfo[0].ProductCode,
-                SCAN_USRID: SCAN_USRID,
-                ORIGINAL_STATUS: selectProductInfo[0].Status
-
-            })
-
+            saveScanData(selectProductInfo[0]) 
             setProductInfo(selectProductInfo[0])
             setproductList(null)
 
@@ -86,14 +71,13 @@ const QrcodeInput = () => {
 
     const checkStatus = async (qrCode) => {
         try {
-            const response = await check_api.get('/api/qr_codes',
+            const response = await check_api.get(
+                `/api/deposits/by-qr-code/${qrCode}`, {},
                 {
-                    headers: {
-                        'qr_code_uid': qrCode // 
-                    }
+                    'X-From-Service-Code': 'QRWEB'
                 }
             );
-
+            console.log(response)
             if (response.status === 200 && response.data) {
                 console.log(`checkStatus 成功: ${qrCode}`);
                 return true;
@@ -106,6 +90,42 @@ const QrcodeInput = () => {
             return false;
         }
     };
+
+    const saveScanData = async (product) => {
+        console.log('product', product)
+        try {
+            const SCAN_USRID = localStorage.getItem('SYSTEM_ADMIN_CODE');
+            const user_token = localStorage.getItem('user_token')
+            api.setAuthorizationToken(user_token);
+
+            // 若 Status 為 0，則先檢查狀態
+            if (product.Status === '0') {
+                console.log("狀態為 0，開始執行 checkStatus");
+                const statusCheckSuccess = await checkStatus(product.QrCode);
+
+                if (statusCheckSuccess) {
+                    product.Status = '1';
+                }
+
+            }
+            await api.post("/Addscan", {
+                PRODUCT_NAME: product.ProductName,
+                QRCODEID: product.QrCode,
+                PRODUCT_CODE: product.ProductCode,
+                SCAN_USRID: SCAN_USRID,
+                ORIGINAL_STATUS: product.Status
+            });
+            setProductInfo(product)
+            setErrorMessage(null)
+        } catch (error) {
+            console.log("保存掃描數據時出錯:", error);
+            if (error.status === 401 || error.status === 403) {
+                alert(error.message)
+                dispatch(logout())
+            }
+            setErrorMessage(error.message)
+        }
+    }
 
     return (
         <div className="page-container">

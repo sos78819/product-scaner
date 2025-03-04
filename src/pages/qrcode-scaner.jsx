@@ -17,7 +17,7 @@ const QrcodeScaner = () => {
     const dispatch = useDispatch()
     const api = new ApiService()
     const wtq_api = new ApiService(import.meta.env.VITE_BASEURL)
-    const check_api = new ApiService()
+    const check_api = new ApiService('http://localhost:3001')
 
     const [wtq_token, setWtq_token] = useState(localStorage.getItem('token'));
 
@@ -92,12 +92,12 @@ const QrcodeScaner = () => {
             api.setAuthorizationToken(user_token);
 
             // 若 Status 為 0，則先檢查狀態
-            if (product.Status === 0) {
+            if (product.Status === '0') {
                 console.log("狀態為 0，開始執行 checkStatus");
                 const statusCheckSuccess = await checkStatus(product.QrCode);
 
                 if (statusCheckSuccess) {
-                    product.Status = 1;
+                    product.Status = '1';
                 }
 
             }
@@ -122,11 +122,10 @@ const QrcodeScaner = () => {
 
     const checkStatus = async (qrCode) => {
         try {
-            const response = await check_api.get('/api/qr_codes',
+            const response = await check_api.get(
+                `/api/deposits/by-qr-code/${qrCode}`, {},
                 {
-                    headers: {
-                        'qr_code_uid': qrCode // 
-                    }
+                    'X-From-Service-Code': 'QRWEB'
                 }
             );
 

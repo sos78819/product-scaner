@@ -15,10 +15,10 @@ const QrcodeScanList = () => {
     const [IsUpload, setUpload] = useState(null);
     const dispatch = useDispatch()
     const api = new ApiService()
-    const delete_api = new ApiService()
+    const delete_api = new ApiService('http://localhost:3001')
     const user_token = localStorage.getItem('user_token')
     api.setAuthorizationToken(user_token);
-    
+
     const handleUpload = async () => {
         try {
             setUploadprogress(true); // 開始上傳前設置進度
@@ -70,19 +70,12 @@ const QrcodeScanList = () => {
     const deleteQrcode = async () => {
         try {
             await Promise.all(data.map(item =>
-                delete_api.delete(`/api/qr-codes`,
+                delete_api.put(`/api/deposits/by-qr-code/${item.qrcodeid}/give-cancel`, {},
                     {
-                        data: {  
-                            "operation_request_id": "09kadeAKsWF123sdfasaS",
-                            "point_give_cancel_date": "",
-                            "sevice_code": "SCCS",
-                            "accounting_base_date": ""
-                        },
-                        headers: {  // headers 放在這裡
-                            'qr_code_uid': item.qrcode_id
-                        }
-                    }
 
+                        'X-From-Service-Code': 'QRWEB'
+
+                    }
                 )
             ));
             console.log("所有 QRCode 已刪除");
