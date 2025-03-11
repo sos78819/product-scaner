@@ -80,7 +80,8 @@ const QrcodeScanList = () => {
             ));
             console.log("所有 QRCode 已刪除");
         } catch (error) {
-            console.error("刪除過程中發生錯誤:", error);
+            console.error("上傳過程中發生錯誤:", error);
+            throw new Error("上傳過程中發生錯誤");
 
         };
     }

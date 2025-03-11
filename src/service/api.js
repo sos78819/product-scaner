@@ -115,14 +115,15 @@ class ApiService {
           break;
         case 401:
           errorMessage = errorMessage || '未授權，請重新登入';
-          localStorage.removeItem('user_token');
-          window.location.href = '/login';
           break;
         case 403:
           errorMessage = errorMessage || '權限不足，請聯絡管理員';
           break;
         case 404:
           errorMessage = errorMessage || '請求的資源不存在';
+          break;
+        case 408:
+          errorMessage = errorMessage || '請求超時，請稍後再試';
           break;
         case 500:
           errorMessage = errorMessage || '伺服器錯誤，請稍後再試';
@@ -142,23 +143,23 @@ class ApiService {
     return { message: errorMessage, status, code: errorCode };
   }
 
-  
-// **GET 請求**
-async get(url, params = {}, headers = {}) {
-  console.log("Headers before request:", headers);
-  try {
-    const response = await this.axiosInstance.get(url, {
-      params: params,  
-      headers: headers 
-    });
-    return response;
-  } catch (error) {
-    if (!error.isHandled) { // 確保 `handleError` 只執行一次
-      throw this.handleError(error);
+
+  // **GET 請求**
+  async get(url, params = {}, headers = {}) {
+    console.log("Headers before request:", headers);
+    try {
+      const response = await this.axiosInstance.get(url, {
+        params: params,
+        headers: headers
+      });
+      return response;
+    } catch (error) {
+      if (!error.isHandled) { // 確保 `handleError` 只執行一次
+        throw this.handleError(error);
+      }
+      throw error;
     }
-    throw error;
   }
-}
 
 
   // **POST 請求**
@@ -175,27 +176,27 @@ async get(url, params = {}, headers = {}) {
   }
 
   // **PUT 請求**
-// **PUT 請求**
-async put(url, data, headers = {}) {
-  console.log("Headers before request:", headers);
-  try {
-    const response = await this.axiosInstance.put(url, data, {
-      headers: headers,
-    });
-    return response;
-  } catch (error) {
-    if (!error.isHandled) {
-      throw this.handleError(error);
+  // **PUT 請求**
+  async put(url, data, headers = {}) {
+    console.log("Headers before request:", headers);
+    try {
+      const response = await this.axiosInstance.put(url, data, {
+        headers: headers,
+      });
+      return response;
+    } catch (error) {
+      if (!error.isHandled) {
+        throw this.handleError(error);
+      }
+      throw error;
     }
-    throw error;
   }
-}
 
   // **delete 請求**
   async delete(url, data, headers) {
     try {
-      const response = await this.axiosInstance.delete(url, 
-        data,        
+      const response = await this.axiosInstance.delete(url,
+        data,
         headers
       );
       return response;
